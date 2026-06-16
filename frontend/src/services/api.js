@@ -70,6 +70,10 @@ export const api = {
 
   getUsers: () => fetchJSON(`${AUTH_BASE}/users`),
 
+  getUserHistory: () => fetchJSON(`${AUTH_BASE}/users/history`),
+
+  deleteUser: (userId) => fetchJSON(`${AUTH_BASE}/users/${userId}`, { method: 'DELETE' }),
+
   getDashboard: () => fetchJSON(`${API_BASE}/dashboard`),
 
   getBookings: (skip = 0, limit = 100) =>

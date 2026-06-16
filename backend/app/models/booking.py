@@ -9,6 +9,11 @@ from app.database import Base
 class UserRole(str, enum.Enum):
     ADMIN = "admin"
     STAFF = "staff"
+    HOUSEKEEPING = "housekeeping"
+    SPA = "spa"
+    RESTAURANT = "restaurant"
+    ROOMS = "rooms"
+    MAINTENANCE = "maintenance"
     CUSTOMER = "customer"
 
 
@@ -226,3 +231,19 @@ class EventInquiry(Base):
     status = Column(String(50), default="inquiry")  # inquiry, proposal_sent, confirmed, cancelled
     notes = Column(Text, default="")
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class UserHistory(Base):
+    __tablename__ = "user_history"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, nullable=False)  # ID of the user this history is for
+    username = Column(String(100), nullable=False)
+    full_name = Column(String(255), default="")
+    email = Column(String(255), nullable=False)
+    role = Column(String(50), nullable=False)
+    action = Column(String(50), nullable=False)  # "created", "deleted"
+    action_by = Column(String(100), nullable=False)  # Who did the action
+    action_at = Column(DateTime, default=datetime.utcnow)
+    started_at = Column(DateTime, nullable=True)  # For deleted users, when they started
+    ended_at = Column(DateTime, nullable=True)  # When they were deleted

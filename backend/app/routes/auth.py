@@ -1,11 +1,11 @@
-from datetime import timedelta
+from datetime import timedelta, datetime
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.config import settings
-from app.models.booking import User, UserRole
+from app.models.booking import User, UserRole, UserHistory
 from app.services.auth_service import (
   authenticate_user, create_user, create_access_token, get_user, get_user_by_email
 )
@@ -61,6 +61,12 @@ async def register_user(
       status_code=status.HTTP_403_FORBIDDEN,
       detail="Only admins can register new users"
     )
+  # Disallow creating customer users
+  if role == UserRole.CUSTOMER.value:
+    raise HTTPException(
+      status_code=status.HTTP_400_BAD_REQUEST,
+      detail="Cannot create customer users via this endpoint. Customers must be created through the front desk."
+    )
   # Check if username exists
   existing_user = get_user(db, username)
   if existing_user:
@@ -77,6 +83,21 @@ async def register_user(
     )
   # Create user
   user = create_user(db, username, email, password, full_name, role)
+  
+  # Log creation in history
+  history_entry = UserHistory(
+    user_id=user.id,
+    username=user.username,
+    full_name=user.full_name,
+    email=user.email,
+    role=user.role,
+    action="created",
+    action_by=current_user.username,
+    started_at=user.created_at
+  )
+  db.add(history_entry)
+  db.commit()
+  
   return {
     "success": True,
     "user": {
@@ -110,6 +131,79 @@ async def get_all_users(
     "is_active": user.is_active,
     "created_at": user.created_at.isoformat() if user.created_at else None
   } for user in users]
+
+
+@router.get("/users/history")
+async def get_user_history(
+  db: Session = Depends(get_db),
+  current_user: User = Depends(get_current_active_user)
+):
+  # Only admins can view user history
+  if current_user.role != UserRole.ADMIN.value:
+    raise HTTPException(
+      status_code=status.HTTP_403_FORBIDDEN,
+      detail="Only admins can view user history"
+    )
+  history = db.query(UserHistory).order_by(UserHistory.action_at.desc()).all()
+  return [{
+    "id": entry.id,
+    "user_id": entry.user_id,
+    "username": entry.username,
+    "full_name": entry.full_name,
+    "email": entry.email,
+    "role": entry.role,
+    "action": entry.action,
+    "action_by": entry.action_by,
+    "action_at": entry.action_at.isoformat() if entry.action_at else None,
+    "started_at": entry.started_at.isoformat() if entry.started_at else None,
+    "ended_at": entry.ended_at.isoformat() if entry.ended_at else None
+  } for entry in history]
+
+
+@router.delete("/users/{user_id}")
+async def delete_user(
+  user_id: int,
+  db: Session = Depends(get_db),
+  current_user: User = Depends(get_current_active_user)
+):
+  # Only admins can delete users
+  if current_user.role != UserRole.ADMIN.value:
+    raise HTTPException(
+      status_code=status.HTTP_403_FORBIDDEN,
+      detail="Only admins can delete users"
+    )
+  # Don't allow deleting yourself
+  if current_user.id == user_id:
+    raise HTTPException(
+      status_code=status.HTTP_400_BAD_REQUEST,
+      detail="Cannot delete your own account"
+    )
+  # Find the user
+  user = db.query(User).filter(User.id == user_id).first()
+  if not user:
+    raise HTTPException(
+      status_code=status.HTTP_404_NOT_FOUND,
+      detail="User not found"
+    )
+  
+  # Log deletion in history
+  history_entry = UserHistory(
+    user_id=user.id,
+    username=user.username,
+    full_name=user.full_name,
+    email=user.email,
+    role=user.role,
+    action="deleted",
+    action_by=current_user.username,
+    started_at=user.created_at,
+    ended_at=datetime.utcnow()
+  )
+  db.add(history_entry)
+  
+  # Delete the user
+  db.delete(user)
+  db.commit()
+  return {"success": True, "message": "User deleted successfully"}
 
 
 @router.get("/me")

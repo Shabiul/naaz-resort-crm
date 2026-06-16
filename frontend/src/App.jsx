@@ -1,7 +1,9 @@
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import Sidebar from './components/Sidebar'
 import Dashboard from './pages/Dashboard'
+import CustomerDashboard from './pages/CustomerDashboard'
 import Bookings from './pages/Bookings'
+import MyBookings from './pages/MyBookings'
 import BookingDetail from './pages/BookingDetail'
 import Leads from './pages/Leads'
 import CallLogs from './pages/CallLogs'
@@ -16,15 +18,26 @@ import Complaints from './pages/Complaints'
 import Loyalty from './pages/Loyalty'
 import Events from './pages/Events'
 import Users from './pages/Users'
+import UserHistory from './pages/UserHistory'
+import MyRequests from './pages/MyRequests'
 import ChatWidget from './components/ChatWidget'
 import ErrorBoundary from './components/ErrorBoundary'
 import Login from './pages/Login'
 import ProtectedRoute from './components/ProtectedRoute'
 import RoleProtectedRoute from './components/RoleProtectedRoute'
-import { AuthProvider } from './context/AuthContext'
+import { AuthProvider, useAuth } from './context/AuthContext'
 
 function AppRoutes() {
   const location = useLocation()
+  const { user, loading } = useAuth()
+
+  const DashboardComponent = () => {
+    if (user?.role === 'customer') {
+      return <CustomerDashboard />
+    }
+    return <Dashboard />
+  }
+
   return (
     <ErrorBoundary key={location.pathname}>
       <Routes>
@@ -37,16 +50,24 @@ function AppRoutes() {
                 <Sidebar />
                 <main className="flex-1 overflow-y-auto p-6 lg:p-8">
                   <Routes>
-                    <Route path="/" element={<Dashboard />} />
+                    <Route path="/" element={<DashboardComponent />} />
                     <Route
-                      path="/users"
-                      element={
-                        <RoleProtectedRoute allowedRoles={['admin']}>
-                          <Users />
-                        </RoleProtectedRoute>
-                      }
-                    />
-                    <Route path="/bookings" element={<Bookings />} />
+              path="/users"
+              element={
+                <RoleProtectedRoute allowedRoles={['admin']}>
+                  <Users />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/users/history"
+              element={
+                <RoleProtectedRoute allowedRoles={['admin']}>
+                  <UserHistory />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route path="/bookings" element={<Bookings />} />
                     <Route path="/bookings/new" element={<NewBooking />} />
                     <Route path="/bookings/:id" element={<BookingDetail />} />
                     <Route path="/leads" element={<Leads />} />
@@ -65,7 +86,7 @@ function AppRoutes() {
                     <Route
                       path="/housekeeping"
                       element={
-                        <RoleProtectedRoute allowedRoles={['admin', 'staff']}>
+                        <RoleProtectedRoute allowedRoles={['admin', 'staff', 'housekeeping', 'maintenance']}>
                           <Housekeeping />
                         </RoleProtectedRoute>
                       }
@@ -95,10 +116,27 @@ function AppRoutes() {
                         </RoleProtectedRoute>
                       }
                     />
+                    {/* Customer Routes */}
+                    <Route
+                      path="/my-bookings"
+                      element={
+                        <RoleProtectedRoute allowedRoles={['customer']}>
+                          <MyBookings />
+                        </RoleProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/my-requests"
+                      element={
+                        <RoleProtectedRoute allowedRoles={['customer']}>
+                          <MyRequests />
+                        </RoleProtectedRoute>
+                      }
+                    />
                     <Route path="*" element={<Navigate to="/" replace />} />
                   </Routes>
                 </main>
-                <ChatWidget />
+                {user?.role !== 'customer' && <ChatWidget />}
               </div>
             </ProtectedRoute>
           }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { User, Plus } from 'lucide-react'
+import { User, Plus, Trash2 } from 'lucide-react'
 import { api } from '../services/api'
 import { useAuth } from '../context/AuthContext'
 
@@ -52,6 +52,21 @@ export default function Users() {
       fetchUsers()
     } catch (err) {
       setError(err.message || 'Failed to create user')
+    }
+  }
+
+  const handleDelete = async (userId) => {
+    if (!window.confirm('Are you sure you want to delete this user?')) {
+      return
+    }
+    setError('')
+    setSuccess('')
+    try {
+      await api.deleteUser(userId)
+      setSuccess('User deleted successfully!')
+      fetchUsers()
+    } catch (err) {
+      setError(err.message || 'Failed to delete user')
     }
   }
 
@@ -151,7 +166,11 @@ export default function Users() {
                 >
                   <option value="admin">Admin</option>
                   <option value="staff">Staff</option>
-                  <option value="customer">Customer</option>
+                  <option value="housekeeping">Housekeeping</option>
+                  <option value="spa">Spa</option>
+                  <option value="restaurant">Restaurant</option>
+                  <option value="rooms">Rooms</option>
+                  <option value="maintenance">Maintenance</option>
                 </select>
               </div>
             </div>
@@ -183,38 +202,54 @@ export default function Users() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {users.map((user) => (
-                <tr key={user.id}>
+              {users.map((userItem) => (
+                <tr key={userItem.id}>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
                         <User className="w-5 h-5 text-blue-600" />
                       </div>
                       <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">{user.full_name || user.username}</div>
-                        <div className="text-sm text-gray-500">@{user.username}</div>
+                        <div className="text-sm font-medium text-gray-900">{userItem.full_name || userItem.username}</div>
+                        <div className="text-sm text-gray-500">@{userItem.username}</div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.email}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{userItem.email}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      user.role === 'admin' ? 'bg-purple-100 text-purple-800' :
-                      user.role === 'staff' ? 'bg-blue-100 text-blue-800' :
+                      userItem.role === 'admin' ? 'bg-purple-100 text-purple-800' :
+                      userItem.role === 'staff' ? 'bg-blue-100 text-blue-800' :
+                      userItem.role === 'housekeeping' ? 'bg-yellow-100 text-yellow-800' :
+                      userItem.role === 'spa' ? 'bg-pink-100 text-pink-800' :
+                      userItem.role === 'restaurant' ? 'bg-orange-100 text-orange-800' :
+                      userItem.role === 'rooms' ? 'bg-teal-100 text-teal-800' :
+                      userItem.role === 'maintenance' ? 'bg-red-100 text-red-800' :
                       'bg-green-100 text-green-800'
                     }`}>
-                      {user.role}
+                      {userItem.role}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      user.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      userItem.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                     }`}>
-                      {user.is_active ? 'Active' : 'Inactive'}
+                      {userItem.is_active ? 'Active' : 'Inactive'}
                     </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <button
+                      onClick={() => handleDelete(userItem.id)}
+                      className="text-red-600 hover:text-red-800 hover:bg-red-50 px-3 py-1 rounded-lg text-sm font-medium flex items-center gap-1"
+                      disabled={userItem.id === user?.id}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Delete
+                    </button>
                   </td>
                 </tr>
               ))}

@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { Lock, User } from 'lucide-react'
+import { Lock, User, Hotel } from 'lucide-react'
 
 export default function Login() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [loginType, setLoginType] = useState('staff') // 'staff' or 'customer'
   const { login } = useAuth()
   const navigate = useNavigate()
 
@@ -30,13 +31,39 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800">Naaz Resort</h1>
-          <p className="text-gray-500 mt-2">Admin Dashboard</p>
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <Hotel className="w-10 h-10 text-blue-600" />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900">Naaz Resort</h1>
+          <p className="text-gray-500 mt-2">Welcome back! Please sign in.</p>
+        </div>
+
+        <div className="flex gap-2 mb-6">
+          <button
+            onClick={() => setLoginType('staff')}
+            className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
+              loginType === 'staff'
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            Staff / Admin
+          </button>
+          <button
+            onClick={() => setLoginType('customer')}
+            className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
+              loginType === 'customer'
+                ? 'bg-green-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            Customer
+          </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               Username
             </label>
             <div className="relative">
@@ -53,7 +80,7 @@ export default function Login() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               Password
             </label>
             <div className="relative">
@@ -78,15 +105,18 @@ export default function Login() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
 
         <div className="mt-6 text-center text-sm text-gray-500">
-          <p>Demo credentials:</p>
-          <p className="font-medium text-gray-700">Username: admin | Password: admin123</p>
+          {loginType === 'staff' ? (
+            <p>Demo admin credentials: admin / admin123</p>
+          ) : (
+            <p>Contact the front desk to create your account</p>
+          )}
         </div>
       </div>
     </div>
