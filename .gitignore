@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pycache
+.env
+*.db
+*.sqlite3
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# Vercel
+.vercel/
+
+# Build outputs (keep crm-dist and www-dist out — they're build artifacts)
+backend/crm-dist/
+backend/www-dist/
+backend/naaz_resort.db
+
+# Misc
+*.log
+.DS_Store
