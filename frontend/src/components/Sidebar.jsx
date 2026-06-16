@@ -3,7 +3,7 @@ import {
   LayoutDashboard, CalendarCheck, Users, Phone, Building2,
   Sparkles, UtensilsCrossed, PlusCircle, MessageCircle,
   CheckSquare, Mountain, AlertTriangle, Star, PartyPopper, LogOut, User, UserCog,
-  Wrench, Home, History
+  Wrench, Home, History, FileText
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 
@@ -23,6 +23,7 @@ const roleNavItems = {
     { to: '/activities', label: 'Activities', icon: Mountain },
     { to: '/housekeeping', label: 'Housekeeping', icon: CheckSquare },
     { to: '/complaints', label: 'Complaints', icon: AlertTriangle },
+    { to: '/service-requests', label: 'Service Requests', icon: FileText },
     { to: '/loyalty', label: 'Loyalty', icon: Star },
     { to: '/events', label: 'Events', icon: PartyPopper },
   ],
@@ -32,6 +33,7 @@ const roleNavItems = {
     { to: '/bookings/new', label: 'New Booking', icon: PlusCircle },
     { to: '/leads', label: 'Guest Leads', icon: Users },
     { to: '/chat', label: 'Chat', icon: MessageCircle },
+    { to: '/service-requests', label: 'Service Requests', icon: FileText },
     { to: '/rooms', label: 'Rooms', icon: Building2 },
     { to: '/spa', label: 'Spa', icon: Sparkles },
     { to: '/restaurant', label: 'Restaurant', icon: UtensilsCrossed },
@@ -40,6 +42,28 @@ const roleNavItems = {
   housekeeping: [
     { to: '/', label: 'Dashboard', icon: LayoutDashboard },
     { to: '/housekeeping', label: 'Housekeeping Tasks', icon: CheckSquare },
+    { to: '/service-requests', label: 'Service Requests', icon: FileText },
+  ],
+  spa: [
+    { to: '/', label: 'Dashboard', icon: LayoutDashboard },
+    { to: '/spa', label: 'Spa Bookings', icon: Sparkles },
+    { to: '/service-requests', label: 'Service Requests', icon: FileText },
+  ],
+  restaurant: [
+    { to: '/', label: 'Dashboard', icon: LayoutDashboard },
+    { to: '/restaurant', label: 'Restaurant Reservations', icon: UtensilsCrossed },
+    { to: '/service-requests', label: 'Service Requests', icon: FileText },
+  ],
+  rooms: [
+    { to: '/', label: 'Dashboard', icon: LayoutDashboard },
+    { to: '/rooms', label: 'Rooms', icon: Home },
+    { to: '/bookings', label: 'Bookings', icon: CalendarCheck },
+    { to: '/service-requests', label: 'Service Requests', icon: FileText },
+  ],
+  maintenance: [
+    { to: '/', label: 'Dashboard', icon: LayoutDashboard },
+    { to: '/housekeeping', label: 'Maintenance Tasks', icon: Wrench },
+    { to: '/service-requests', label: 'Service Requests', icon: FileText },
   ],
   spa: [
     { to: '/', label: 'Dashboard', icon: LayoutDashboard },

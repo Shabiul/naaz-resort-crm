@@ -247,3 +247,55 @@ class UserHistory(Base):
     action_at = Column(DateTime, default=datetime.utcnow)
     started_at = Column(DateTime, nullable=True)  # For deleted users, when they started
     ended_at = Column(DateTime, nullable=True)  # When they were deleted
+
+
+class RequestCategory(str, enum.Enum):
+    HOUSEKEEPING = "housekeeping"
+    MAINTENANCE = "maintenance"
+    RESTAURANT = "restaurant"
+    SPA = "spa"
+    COMPLAINT = "complaint"
+    BOOKING = "booking"
+    GENERAL = "general"
+    EMERGENCY = "emergency"
+
+
+class Priority(str, enum.Enum):
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+    CRITICAL = "critical"
+
+
+class RequestStatus(str, enum.Enum):
+    OPEN = "open"
+    ASSIGNED = "assigned"
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+    CLOSED = "closed"
+
+
+class RequestSource(str, enum.Enum):
+    ADMIN = "admin"
+    CUSTOMER = "customer"
+    VOICE_AGENT = "voice_agent"
+    WHATSAPP = "whatsapp"
+
+
+class ServiceRequest(Base):
+    __tablename__ = "service_requests"
+
+    id = Column(Integer, primary_key=True, index=True)
+    request_number = Column(String(100), unique=True, index=True, nullable=False)
+    title = Column(String(255), nullable=False)
+    description = Column(Text, default="")
+    room_number = Column(String(50), default="")
+    category = Column(String(50), nullable=False)
+    priority = Column(String(20), default=Priority.MEDIUM.value)
+    status = Column(String(50), default=RequestStatus.OPEN.value)
+    assigned_role = Column(String(50), nullable=True)
+    created_by_user_id = Column(Integer, nullable=True)
+    source = Column(String(50), default=RequestSource.ADMIN.value)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    resolved_at = Column(DateTime, nullable=True)

@@ -182,4 +182,13 @@ export const api = {
 
   // --- Payment demo ---
   markBookingPaid: (id) => fetchJSON(`${API_BASE}/bookings/${id}/pay`, { method: 'POST' }),
+
+  // --- Service Requests ---
+  getServiceRequests: (filters = {}) => fetchJSON(`${API_BASE}/service-requests?${toParams(filters)}`),
+  getServiceRequest: (id) => fetchJSON(`${API_BASE}/service-requests/${id}`),
+  createServiceRequest: (data) => fetchJSON(`${API_BASE}/service-requests?${toParams(data)}`, { method: 'POST' }),
+  updateServiceRequest: (id, data) => fetchJSON(`${API_BASE}/service-requests/${id}?${toParams(data)}`, { method: 'PATCH' }),
+  assignServiceRequest: (id, assignedRole) => fetchJSON(`${API_BASE}/service-requests/${id}/assign?assigned_role=${assignedRole}`, { method: 'PATCH' }),
+  updateRequestStatus: (id, status) => fetchJSON(`${API_BASE}/service-requests/${id}/status?new_status=${status}`, { method: 'PATCH' }),
+  deleteServiceRequest: (id) => fetchJSON(`${API_BASE}/service-requests/${id}`, { method: 'DELETE' }),
 }

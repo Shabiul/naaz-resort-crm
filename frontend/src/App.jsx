@@ -20,6 +20,7 @@ import Events from './pages/Events'
 import Users from './pages/Users'
 import UserHistory from './pages/UserHistory'
 import MyRequests from './pages/MyRequests'
+import ServiceRequests from './pages/ServiceRequests'
 import ChatWidget from './components/ChatWidget'
 import ErrorBoundary from './components/ErrorBoundary'
 import Login from './pages/Login'
@@ -93,13 +94,14 @@ function AppRoutes() {
                     />
                     <Route path="/activities" element={<Activities />} />
                     <Route
-                      path="/complaints"
-                      element={
-                        <RoleProtectedRoute allowedRoles={['admin', 'staff']}>
-                          <Complaints />
-                        </RoleProtectedRoute>
-                      }
-                    />
+              path="/complaints"
+              element={
+                <RoleProtectedRoute allowedRoles={['admin', 'staff']}>
+                  <Complaints />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route path="/service-requests" element={<ServiceRequests />} />
                     <Route
                       path="/loyalty"
                       element={

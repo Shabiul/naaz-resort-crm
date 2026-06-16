@@ -8,7 +8,8 @@ from app.models.booking import (
     User, UserRole, Booking, BookingStatus,
     GuestLead, CallLog, SpaReservation, RestaurantReservation,
     ChatConversation, ChatMessage, HousekeepingTask, ActivityBooking,
-    Complaint, GuestLoyalty, EventInquiry, UserHistory
+    Complaint, GuestLoyalty, EventInquiry, UserHistory,
+    ServiceRequest, RequestCategory, Priority, RequestStatus, RequestSource
 )
 from app.services.auth_service import get_password_hash
 
@@ -456,6 +457,74 @@ def seed_database(db: Session = Depends(get_db)):
         ]
         for call in calls:
             db.add(call)
+
+    # Add dummy service requests
+    existing_requests = db.query(ServiceRequest).count()
+    if existing_requests == 0:
+        admin_user = db.query(User).filter(User.role == UserRole.ADMIN).first()
+        requests = [
+            ServiceRequest(
+                request_number=f"SR{date.today().strftime('%Y%m%d')}0001",
+                title="Room Cleaning Request",
+                description="Guest in 101 needs their room cleaned urgently",
+                room_number="101",
+                category=RequestCategory.HOUSEKEEPING.value,
+                priority=Priority.HIGH.value,
+                status=RequestStatus.ASSIGNED.value,
+                assigned_role=UserRole.HOUSEKEEPING.value,
+                created_by_user_id=admin_user.id,
+                source=RequestSource.ADMIN.value
+            ),
+            ServiceRequest(
+                request_number=f"SR{date.today().strftime('%Y%m%d')}0002",
+                title="AC Not Working",
+                description="Air conditioning in room 205 is not cooling",
+                room_number="205",
+                category=RequestCategory.MAINTENANCE.value,
+                priority=Priority.CRITICAL.value,
+                status=RequestStatus.IN_PROGRESS.value,
+                assigned_role=UserRole.MAINTENANCE.value,
+                created_by_user_id=admin_user.id,
+                source=RequestSource.ADMIN.value
+            ),
+            ServiceRequest(
+                request_number=f"SR{date.today().strftime('%Y%m%d')}0003",
+                title="Dinner Reservation",
+                description="Need a table for 4 at 7 PM tonight",
+                room_number="103",
+                category=RequestCategory.RESTAURANT.value,
+                priority=Priority.MEDIUM.value,
+                status=RequestStatus.ASSIGNED.value,
+                assigned_role=UserRole.RESTAURANT.value,
+                created_by_user_id=admin_user.id,
+                source=RequestSource.ADMIN.value
+            ),
+            ServiceRequest(
+                request_number=f"SR{date.today().strftime('%Y%m%d')}0004",
+                title="Spa Appointment",
+                description="Guest wants to book a massage for tomorrow at 11 AM",
+                room_number="110",
+                category=RequestCategory.SPA.value,
+                priority=Priority.LOW.value,
+                status=RequestStatus.OPEN.value,
+                assigned_role=UserRole.SPA.value,
+                created_by_user_id=admin_user.id,
+                source=RequestSource.VOICE_AGENT.value
+            ),
+            ServiceRequest(
+                request_number=f"SR{date.today().strftime('%Y%m%d')}0005",
+                title="Late Checkout Request",
+                description="Guest would like to check out at 2 PM instead of 12 PM",
+                room_number="202",
+                category=RequestCategory.BOOKING.value,
+                priority=Priority.MEDIUM.value,
+                status=RequestStatus.OPEN.value,
+                created_by_user_id=admin_user.id,
+                source=RequestSource.WHATSAPP.value
+            )
+        ]
+        for req in requests:
+            db.add(req)
 
     db.commit()
 

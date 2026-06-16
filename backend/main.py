@@ -6,7 +6,7 @@ from fastapi.responses import FileResponse, JSONResponse, Response
 
 from app.config import settings
 from app.database import init_db
-from app.routes import twilio_voice, admin_api, seed, chat, auth
+from app.routes import twilio_voice, admin_api, seed, chat, auth, service_requests
 from app.models.booking import (
     Booking, GuestLead, CallLog, SpaReservation, RestaurantReservation,
     HousekeepingTask, ActivityBooking, Complaint, GuestLoyalty, EventInquiry
@@ -24,6 +24,7 @@ app.add_middleware(
 )
 
 app.include_router(auth.router)
+app.include_router(service_requests.router)
 app.include_router(twilio_voice.router)
 app.include_router(admin_api.router)
 app.include_router(seed.router)
