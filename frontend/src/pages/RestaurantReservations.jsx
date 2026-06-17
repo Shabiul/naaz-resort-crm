@@ -10,7 +10,7 @@ export default function RestaurantReservations() {
   const [submitting, setSubmitting] = useState(false)
 
   const load = () => api.getRestaurant().then(setReservations).catch(() => setReservations([]))
-  useEffect(load, [])
+  useEffect(() => { load() }, [])
 
   const handleSubmit = async (e) => {
     e.preventDefault()

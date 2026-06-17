@@ -25,6 +25,7 @@ class User(Base):
     email = Column(String(255), unique=True, index=True, nullable=False)
     hashed_password = Column(String(255), nullable=False)
     full_name = Column(String(255), default="")
+    phone = Column(String(50), default="")
     role = Column(String(50), default=UserRole.STAFF.value, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -216,6 +217,38 @@ class GuestLoyalty(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
 
+class VenueType(str, enum.Enum):
+    LAWN = "lawn"
+    HALL = "hall"
+    BANQUET = "banquet"
+    POOLSIDE = "poolside"
+    OUTDOOR = "outdoor"
+
+
+class Venue(Base):
+    __tablename__ = "venues"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(255), nullable=False)
+    venue_type = Column(String(50), default=VenueType.LAWN.value)
+    capacity_min = Column(Integer, default=0)
+    capacity_max = Column(Integer, default=100)
+    price_per_event = Column(Float, default=0.0)
+    description = Column(Text, default="")
+    amenities = Column(Text, default="")  # comma-separated
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class EventStatus(str, enum.Enum):
+    INQUIRY = "inquiry"
+    QUOTATION_SENT = "quotation_sent"
+    NEGOTIATION = "negotiation"
+    CONFIRMED = "confirmed"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+
+
 class EventInquiry(Base):
     __tablename__ = "event_inquiries"
 
@@ -228,7 +261,9 @@ class EventInquiry(Base):
     guests_count = Column(Integer, default=50)
     budget = Column(String(100), default="")
     requirements = Column(Text, default="")
-    status = Column(String(50), default="inquiry")  # inquiry, proposal_sent, confirmed, cancelled
+    status = Column(String(50), default=EventStatus.INQUIRY.value)  # see EventStatus
+    venue_id = Column(Integer, nullable=True)  # -> venues.id
+    quoted_amount = Column(Float, default=0.0)  # quotation / pipeline value
     notes = Column(Text, default="")
     created_at = Column(DateTime, default=datetime.utcnow)
 
@@ -299,3 +334,69 @@ class ServiceRequest(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     resolved_at = Column(DateTime, nullable=True)
+
+
+class InvoiceStatus(str, enum.Enum):
+    DRAFT = "draft"
+    ISSUED = "issued"
+    PAID = "paid"
+    CANCELLED = "cancelled"
+
+
+class Invoice(Base):
+    __tablename__ = "invoices"
+
+    id = Column(Integer, primary_key=True, index=True)
+    invoice_number = Column(String(100), unique=True, index=True, nullable=False)
+    booking_id = Column(Integer, nullable=False, index=True)
+    guest_name = Column(String(255), default="")
+    guest_email = Column(String(255), default="")
+    guest_phone = Column(String(50), default="")
+    room_type = Column(String(100), default="")
+    check_in = Column(Date, nullable=True)
+    check_out = Column(Date, nullable=True)
+    nights = Column(Integer, default=1)
+    base_amount = Column(Float, default=0.0)
+    cgst_rate = Column(Float, default=6.0)
+    sgst_rate = Column(Float, default=6.0)
+    igst_rate = Column(Float, default=0.0)
+    cgst_amount = Column(Float, default=0.0)
+    sgst_amount = Column(Float, default=0.0)
+    igst_amount = Column(Float, default=0.0)
+    total_gst = Column(Float, default=0.0)
+    total_amount = Column(Float, default=0.0)
+    status = Column(String(20), default=InvoiceStatus.ISSUED.value)
+    notes = Column(Text, default="")
+    issued_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class PaymentStatus(str, enum.Enum):
+    PENDING = "pending"
+    PAID = "paid"
+    FAILED = "failed"
+    REFUNDED = "refunded"
+
+
+class PaymentType(str, enum.Enum):
+    FULL = "full"
+    PARTIAL = "partial"
+
+
+class Payment(Base):
+    __tablename__ = "payments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    booking_id = Column(Integer, nullable=False)  # -> bookings.id
+    amount = Column(Float, default=0.0)
+    currency = Column(String(10), default="INR")
+    payment_type = Column(String(20), default=PaymentType.FULL.value)
+    payment_status = Column(String(20), default=PaymentStatus.PENDING.value)
+    order_id = Column(String(255), default="")        # Razorpay order id
+    transaction_id = Column(String(255), default="")  # Razorpay payment id
+    method = Column(String(50), default="")           # card / upi / netbanking / mock
+    is_mock = Column(Boolean, default=True)
+    notes = Column(Text, default="")
+    created_by_user_id = Column(Integer, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

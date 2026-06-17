@@ -47,13 +47,14 @@ def authenticate_user(db: Session, username: str, password: str) -> Optional[Use
     return user
 
 
-def create_user(db: Session, username: str, email: str, password: str, full_name: str = "", role: str = UserRole.STAFF.value) -> User:
+def create_user(db: Session, username: str, email: str, password: str, full_name: str = "", role: str = UserRole.STAFF.value, phone: str = "") -> User:
     hashed_password = get_password_hash(password)
     db_user = User(
         username=username,
         email=email,
         hashed_password=hashed_password,
         full_name=full_name,
+        phone=phone,
         role=role
     )
     db.add(db_user)

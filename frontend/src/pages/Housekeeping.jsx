@@ -16,7 +16,7 @@ export default function Housekeeping() {
   const [filter, setFilter] = useState('all')
 
   const load = () => api.getHousekeeping().then(setTasks).catch(() => setTasks([]))
-  useEffect(load, [])
+  useEffect(() => { load() }, [])
 
   const handleSubmit = async (e) => {
     e.preventDefault()

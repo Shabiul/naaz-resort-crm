@@ -47,7 +47,7 @@ export default function ServiceRequests() {
   const isCustomer = user?.role === 'customer'
 
   const load = () => api.getServiceRequests(filters).then(setRequests).catch(() => setRequests([]))
-  useEffect(load, [filters])
+  useEffect(() => { load() }, [filters])
 
   const handleSubmit = async (e) => {
     e.preventDefault()

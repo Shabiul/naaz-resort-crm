@@ -8,7 +8,7 @@ from app.models.booking import (
     User, UserRole, Booking, BookingStatus,
     GuestLead, CallLog, SpaReservation, RestaurantReservation,
     ChatConversation, ChatMessage, HousekeepingTask, ActivityBooking,
-    Complaint, GuestLoyalty, EventInquiry, UserHistory,
+    Complaint, GuestLoyalty, EventInquiry, EventStatus, Venue, VenueType, UserHistory,
     ServiceRequest, RequestCategory, Priority, RequestStatus, RequestSource
 )
 from app.services.auth_service import get_password_hash
@@ -184,6 +184,27 @@ def seed_database(db: Session = Depends(get_db)):
                 started_at=user.created_at
             )
             db.add(staff_history)
+
+    # Add a demo customer (email matches John Doe's bookings so the portal shows real data)
+    existing_customer = db.query(User).filter(User.role == UserRole.CUSTOMER).first()
+    if not existing_customer:
+        customer = User(
+            username="customer",
+            email="john@example.com",
+            hashed_password=get_password_hash("customer123"),
+            full_name="John Doe",
+            phone="+1234567890",
+            role=UserRole.CUSTOMER,
+            is_active=True
+        )
+        db.add(customer)
+        db.commit()
+        db.add(UserHistory(
+            user_id=customer.id, username=customer.username, full_name=customer.full_name,
+            email=customer.email, role=customer.role, action="created",
+            action_by="system", started_at=customer.created_at
+        ))
+        db.commit()
 
     today = date.today()
 
@@ -408,9 +429,51 @@ def seed_database(db: Session = Depends(get_db)):
         for member in loyalty_members:
             db.add(member)
 
-    # Add dummy event inquiries
+    # Add venues
+    existing_venues = db.query(Venue).count()
+    if existing_venues == 0:
+        venues = [
+            Venue(
+                name="Samrat Lawn", venue_type=VenueType.LAWN.value,
+                capacity_min=100, capacity_max=500, price_per_event=150000,
+                description="Sprawling open-air lawn ideal for grand weddings.",
+                amenities="Stage, Parking, Power Backup, Garden Lighting, Green Rooms",
+            ),
+            Venue(
+                name="Maharaja Lawn", venue_type=VenueType.LAWN.value,
+                capacity_min=150, capacity_max=800, price_per_event=250000,
+                description="Our largest lawn for premium, large-scale celebrations.",
+                amenities="Stage, Valet Parking, Power Backup, Fountain, Bridal Suite",
+            ),
+            Venue(
+                name="Maharani Lawn", venue_type=VenueType.LAWN.value,
+                capacity_min=80, capacity_max=350, price_per_event=120000,
+                description="Elegant landscaped lawn for mid-sized functions.",
+                amenities="Stage, Parking, Garden Lighting, Green Rooms",
+            ),
+            Venue(
+                name="Prince Lawn", venue_type=VenueType.LAWN.value,
+                capacity_min=50, capacity_max=200, price_per_event=80000,
+                description="Intimate lawn perfect for smaller gatherings.",
+                amenities="Parking, Garden Lighting, Gazebo",
+            ),
+            Venue(
+                name="Banquet Hall", venue_type=VenueType.BANQUET.value,
+                capacity_min=50, capacity_max=300, price_per_event=100000,
+                description="Air-conditioned indoor hall for corporate and social events.",
+                amenities="Air Conditioning, Projector, AV System, Stage, Catering Kitchen",
+            ),
+        ]
+        for venue in venues:
+            db.add(venue)
+        db.commit()
+
+    # Add dummy event inquiries (linked to venues)
     existing_events = db.query(EventInquiry).count()
     if existing_events == 0:
+        samrat = db.query(Venue).filter(Venue.name == "Samrat Lawn").first()
+        banquet = db.query(Venue).filter(Venue.name == "Banquet Hall").first()
+        maharaja = db.query(Venue).filter(Venue.name == "Maharaja Lawn").first()
         events = [
             EventInquiry(
                 guest_name="Robert Brown",
@@ -420,16 +483,34 @@ def seed_database(db: Session = Depends(get_db)):
                 event_date=today + timedelta(days=90),
                 guests_count=150,
                 budget="$50,000",
+                quoted_amount=150000,
+                venue_id=samrat.id if samrat else None,
                 requirements="Outdoor venue, catering, music",
-                status="proposal_sent"
+                status=EventStatus.QUOTATION_SENT.value
             ),
             EventInquiry(
                 guest_name="XYZ Corp",
                 phone="+1444555666",
                 event_type="conference",
+                event_date=today + timedelta(days=30),
                 guests_count=100,
+                quoted_amount=100000,
+                venue_id=banquet.id if banquet else None,
                 requirements="Meeting room, AV equipment",
-                status="inquiry"
+                status=EventStatus.INQUIRY.value
+            ),
+            EventInquiry(
+                guest_name="Sharma Family",
+                phone="+1555666777",
+                email="sharma@example.com",
+                event_type="anniversary",
+                event_date=today + timedelta(days=45),
+                guests_count=400,
+                budget="$60,000",
+                quoted_amount=250000,
+                venue_id=maharaja.id if maharaja else None,
+                requirements="Decor, live band, premium catering",
+                status=EventStatus.CONFIRMED.value
             )
         ]
         for event in events:
@@ -462,7 +543,32 @@ def seed_database(db: Session = Depends(get_db)):
     existing_requests = db.query(ServiceRequest).count()
     if existing_requests == 0:
         admin_user = db.query(User).filter(User.role == UserRole.ADMIN).first()
+        customer_user = db.query(User).filter(User.role == UserRole.CUSTOMER).first()
+        customer_id = customer_user.id if customer_user else (admin_user.id if admin_user else None)
         requests = [
+            ServiceRequest(
+                request_number=f"SR{date.today().strftime('%Y%m%d')}0101",
+                title="Extra Pillows",
+                description="Could we get two extra pillows in room 101 please?",
+                room_number="101",
+                category=RequestCategory.HOUSEKEEPING.value,
+                priority=Priority.LOW.value,
+                status=RequestStatus.COMPLETED.value,
+                assigned_role=UserRole.HOUSEKEEPING.value,
+                created_by_user_id=customer_id,
+                source=RequestSource.CUSTOMER.value
+            ),
+            ServiceRequest(
+                request_number=f"SR{date.today().strftime('%Y%m%d')}0102",
+                title="Late Checkout",
+                description="Requesting a late checkout at 2 PM if possible.",
+                room_number="101",
+                category=RequestCategory.BOOKING.value,
+                priority=Priority.MEDIUM.value,
+                status=RequestStatus.OPEN.value,
+                created_by_user_id=customer_id,
+                source=RequestSource.CUSTOMER.value
+            ),
             ServiceRequest(
                 request_number=f"SR{date.today().strftime('%Y%m%d')}0001",
                 title="Room Cleaning Request",

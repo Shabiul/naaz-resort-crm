@@ -12,7 +12,7 @@ export default function SpaReservations() {
   const [submitting, setSubmitting] = useState(false)
 
   const load = () => api.getSpa().then(setReservations).catch(() => setReservations([]))
-  useEffect(load, [])
+  useEffect(() => { load() }, [])
 
   const handleSubmit = async (e) => {
     e.preventDefault()

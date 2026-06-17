@@ -1,23 +1,39 @@
+import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { CalendarCheck, CreditCard, MessageCircle } from 'lucide-react'
+import { CalendarCheck, MessageCircle, CreditCard, User, CalendarClock, IndianRupee } from 'lucide-react'
+import { api } from '../services/api'
+
+const money = (n) => `₹${(n || 0).toLocaleString('en-IN')}`
 
 export default function CustomerDashboard() {
   const { user } = useAuth()
+  const [summary, setSummary] = useState(null)
+
+  useEffect(() => { api.getMySummary().then(setSummary).catch(() => setSummary(null)) }, [])
 
   const stats = [
-    { title: 'Current Bookings', value: 1, icon: CalendarCheck, color: 'bg-blue-100 text-blue-600' },
-    { title: 'Pending Requests', value: 0, icon: MessageCircle, color: 'bg-yellow-100 text-yellow-600' },
-    { title: 'Total Transactions', value: 2, icon: CreditCard, color: 'bg-green-100 text-green-600' },
+    { title: 'Active Bookings', value: summary?.active_bookings ?? '—', icon: CalendarCheck, color: 'bg-blue-100 text-blue-600' },
+    { title: 'Upcoming Stays', value: summary?.upcoming_bookings ?? '—', icon: CalendarClock, color: 'bg-indigo-100 text-indigo-600' },
+    { title: 'Open Requests', value: summary?.open_requests ?? '—', icon: MessageCircle, color: 'bg-yellow-100 text-yellow-600' },
+    { title: 'Amount Due', value: summary ? money(summary.amount_due) : '—', icon: IndianRupee, color: 'bg-green-100 text-green-600' },
+  ]
+
+  const actions = [
+    { to: '/my-bookings', label: 'View My Bookings', icon: CalendarCheck },
+    { to: '/my-requests', label: 'My Requests', icon: MessageCircle },
+    { to: '/my-invoices', label: 'My Invoices', icon: CreditCard },
+    { to: '/my-profile', label: 'My Profile', icon: User },
   ]
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Welcome back, {user?.full_name || user?.username}!</h1>
-        <p className="text-gray-500 mt-1">Manage your bookings and requests</p>
+        <p className="text-gray-500 mt-1">Manage your bookings, requests, and account</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, i) => (
           <div key={i} className="bg-white p-6 rounded-lg shadow-sm border">
             <div className="flex items-center gap-4">
@@ -35,21 +51,14 @@ export default function CustomerDashboard() {
 
       <div className="bg-white p-6 rounded-lg shadow-sm border">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <button
-            onClick={() => window.location.href = '/my-bookings'}
-            className="flex items-center justify-center gap-3 p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all"
-          >
-            <CalendarCheck className="w-6 h-6 text-gray-500 hover:text-blue-600" />
-            <span className="font-medium text-gray-700 hover:text-blue-700">View My Bookings</span>
-          </button>
-          <button
-            onClick={() => window.location.href = '/my-requests'}
-            className="flex items-center justify-center gap-3 p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all"
-          >
-            <MessageCircle className="w-6 h-6 text-gray-500 hover:text-blue-600" />
-            <span className="font-medium text-gray-700 hover:text-blue-700">My Requests</span>
-          </button>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {actions.map((a) => (
+            <Link key={a.to} to={a.to}
+              className="flex flex-col items-center justify-center gap-2 p-5 border-2 border-dashed border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all group">
+              <a.icon className="w-7 h-7 text-gray-400 group-hover:text-green-600" />
+              <span className="font-medium text-gray-700 group-hover:text-green-700 text-sm text-center">{a.label}</span>
+            </Link>
+          ))}
         </div>
       </div>
     </div>
