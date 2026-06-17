@@ -23,7 +23,7 @@ export default function MyRequests() {
   const [formData, setFormData] = useState({ title: '', description: '', room_number: '', category: 'general', priority: 'medium' })
 
   const load = () => api.getServiceRequests().then(setRequests).catch(() => setRequests([]))
-  useEffect(load, [])
+  useEffect(() => { load() }, [])
 
   const handleSubmit = async (e) => {
     e.preventDefault()

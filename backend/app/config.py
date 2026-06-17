@@ -31,6 +31,17 @@ class Settings:
     SENDGRID_API_KEY: str = os.getenv("SENDGRID_API_KEY", "")
     RESORT_FROM_EMAIL: str = os.getenv("RESORT_FROM_EMAIL", "reservations@naazresort.com")
 
+    # GST / Invoice
+    GST_RATE: float = float(os.getenv("GST_RATE", "12.0"))   # total %; split equally as CGST+SGST
+    IGST_RATE: float = float(os.getenv("IGST_RATE", "0.0"))  # set = GST_RATE for inter-state
+    GSTIN: str = os.getenv("GSTIN", "")
+    RESORT_ADDRESS: str = os.getenv("RESORT_ADDRESS", "Maharashtra, India")
+
+    # Razorpay (leave blank to run payments in mock mode)
+    RAZORPAY_KEY_ID: str = os.getenv("RAZORPAY_KEY_ID", "")
+    RAZORPAY_KEY_SECRET: str = os.getenv("RAZORPAY_KEY_SECRET", "")
+    RAZORPAY_CURRENCY: str = os.getenv("RAZORPAY_CURRENCY", "INR")
+
     # JWT Settings
     SECRET_KEY: str = os.getenv("SECRET_KEY", "your-super-secret-key-change-this-in-production-please-12345678901234567890")
     ALGORITHM: str = "HS256"

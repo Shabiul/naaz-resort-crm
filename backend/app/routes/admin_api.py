@@ -480,65 +480,7 @@ def api_create_loyalty(
     return {"success": True, "loyalty_id": item.id}
 
 
-# --- Events ---
-@router.get("/events")
-def api_get_events(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
-):
-    items = db.query(EventInquiry).order_by(EventInquiry.created_at.desc()).all()
-    return [
-        {
-            "id": e.id, "guest_name": e.guest_name, "phone": e.phone, "email": e.email,
-            "event_type": e.event_type,
-            "event_date": e.event_date.isoformat() if e.event_date else None,
-            "guests_count": e.guests_count, "budget": e.budget,
-            "requirements": e.requirements, "status": e.status, "notes": e.notes,
-            "created_at": e.created_at.isoformat() if e.created_at else None,
-        }
-        for e in items
-    ]
-
-
-@router.post("/events")
-def api_create_event(
-    guest_name: str,
-    phone: str,
-    event_type: str = "wedding",
-    email: str = "",
-    event_date: Optional[str] = None,
-    guests_count: int = 50,
-    budget: str = "",
-    requirements: str = "",
-    notes: str = "",
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
-):
-    ed = date.fromisoformat(event_date) if event_date else None
-    item = EventInquiry(
-        guest_name=guest_name, phone=phone, email=email, event_type=event_type,
-        event_date=ed, guests_count=guests_count, budget=budget,
-        requirements=requirements, notes=notes
-    )
-    db.add(item)
-    db.commit()
-    db.refresh(item)
-    return {"success": True, "event_id": item.id}
-
-
-@router.post("/events/{event_id}/status")
-def api_update_event_status(
-    event_id: int,
-    status: str,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
-):
-    item = db.query(EventInquiry).filter(EventInquiry.id == event_id).first()
-    if not item:
-        raise HTTPException(status_code=404, detail="Event not found")
-    item.status = status
-    db.commit()
-    return {"success": True}
+# Event & Venue endpoints live in app/routes/events.py (Event Management Module).
 
 
 # --- Spa list ---

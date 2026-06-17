@@ -66,7 +66,27 @@ export const api = {
 
   register: (data) => fetchJSON(`${AUTH_BASE}/register?${toParams(data)}`, { method: 'POST' }),
 
+  registerCustomer: (data) => fetchJSON(`${AUTH_BASE}/register-customer?${toParams(data)}`, { method: 'POST' }),
+
   getMe: () => fetchJSON(`${AUTH_BASE}/me`),
+
+  updateProfile: (data) => fetchJSON(`${AUTH_BASE}/me?${toParams(data)}`, { method: 'PATCH' }),
+
+  // --- Customer Portal ---
+  getMyBookings: () => fetchJSON(`${API_BASE}/my/bookings`),
+  getMyInvoices: () => fetchJSON(`${API_BASE}/my/invoices`),
+  getMySummary: () => fetchJSON(`${API_BASE}/my/summary`),
+
+  // --- Payments ---
+  getPaymentConfig: () => fetchJSON(`${API_BASE}/payments/config`),
+  createPaymentOrder: (bookingId, amount) =>
+    fetchJSON(`${API_BASE}/payments/create-order?${toParams({ booking_id: bookingId, amount })}`, { method: 'POST' }),
+  verifyPayment: (data) => fetchJSON(`${API_BASE}/payments/verify?${toParams(data)}`, { method: 'POST' }),
+  simulatePayment: (paymentId, outcome = 'success') =>
+    fetchJSON(`${API_BASE}/payments/${paymentId}/simulate?${toParams({ outcome })}`, { method: 'POST' }),
+  refundPayment: (paymentId) => fetchJSON(`${API_BASE}/payments/${paymentId}/refund`, { method: 'POST' }),
+  getPayments: (filters = {}) => fetchJSON(`${API_BASE}/payments?${toParams(filters)}`),
+  getBookingPaymentSummary: (bookingId) => fetchJSON(`${API_BASE}/payments/booking/${bookingId}/summary`),
 
   getUsers: () => fetchJSON(`${AUTH_BASE}/users`),
 
@@ -172,9 +192,21 @@ export const api = {
   createLoyalty: (data) => fetchJSON(`${API_BASE}/loyalty?${toParams(data)}`, { method: 'POST' }),
 
   // --- Events ---
-  getEvents: () => fetchJSON(`${API_BASE}/events`),
+  getEvents: (filters = {}) => fetchJSON(`${API_BASE}/events?${toParams(filters)}`),
   createEvent: (data) => fetchJSON(`${API_BASE}/events?${toParams(data)}`, { method: 'POST' }),
+  updateEvent: (id, data) => fetchJSON(`${API_BASE}/events/${id}?${toParams(data)}`, { method: 'PATCH' }),
   updateEventStatus: (id, status) => fetchJSON(`${API_BASE}/events/${id}/status?status=${status}`, { method: 'POST' }),
+  deleteEvent: (id) => fetchJSON(`${API_BASE}/events/${id}`, { method: 'DELETE' }),
+  getEventStats: () => fetchJSON(`${API_BASE}/events/stats`),
+  getUpcomingEvents: (days = 90) => fetchJSON(`${API_BASE}/events/upcoming?${toParams({ days })}`),
+
+  // --- Venues ---
+  getVenues: (activeOnly = false) => fetchJSON(`${API_BASE}/venues?${toParams({ active_only: activeOnly })}`),
+  getVenue: (id) => fetchJSON(`${API_BASE}/venues/${id}`),
+  createVenue: (data) => fetchJSON(`${API_BASE}/venues?${toParams(data)}`, { method: 'POST' }),
+  updateVenue: (id, data) => fetchJSON(`${API_BASE}/venues/${id}?${toParams(data)}`, { method: 'PATCH' }),
+  deleteVenue: (id) => fetchJSON(`${API_BASE}/venues/${id}`, { method: 'DELETE' }),
+  getVenueAvailability: (eventDate) => fetchJSON(`${API_BASE}/venues/availability?${toParams({ event_date: eventDate })}`),
 
   // --- Spa & Restaurant lists ---
   getSpa: () => fetchJSON(`${API_BASE}/spa`),
@@ -182,6 +214,27 @@ export const api = {
 
   // --- Payment demo ---
   markBookingPaid: (id) => fetchJSON(`${API_BASE}/bookings/${id}/pay`, { method: 'POST' }),
+
+  // --- Invoices ---
+  getInvoices: () => fetchJSON(`${API_BASE}/invoices`),
+  getInvoice: (id) => fetchJSON(`${API_BASE}/invoices/${id}`),
+  getInvoiceByBooking: (bookingId) => fetchJSON(`${API_BASE}/invoices/by-booking/${bookingId}`),
+  generateInvoice: (bookingId) => fetchJSON(`${API_BASE}/invoices/generate/${bookingId}`, { method: 'POST' }),
+  downloadInvoicePdf: async (invId, invoiceNumber) => {
+    const hdrs = {}
+    if (token) hdrs['Authorization'] = `Bearer ${token}`
+    const res = await fetch(`${API_BASE}/invoices/${invId}/pdf`, { headers: hdrs })
+    if (!res.ok) throw new Error('PDF generation failed')
+    const blob = await res.blob()
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${invoiceNumber || 'invoice'}.pdf`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  },
 
   // --- Service Requests ---
   getServiceRequests: (filters = {}) => fetchJSON(`${API_BASE}/service-requests?${toParams(filters)}`),

@@ -33,13 +33,26 @@ export function AuthProvider({ children }) {
     return data
   }
 
+  const registerCustomer = async (form) => {
+    const data = await api.registerCustomer(form)
+    setToken(data.access_token)
+    setUser(data.user)
+    return data
+  }
+
+  const refreshUser = async () => {
+    const userData = await api.getMe()
+    setUser(userData)
+    return userData
+  }
+
   const logout = () => {
     setToken(null)
     setUser(null)
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, checkAuth }}>
+    <AuthContext.Provider value={{ user, loading, login, registerCustomer, refreshUser, logout, checkAuth }}>
       {children}
     </AuthContext.Provider>
   )

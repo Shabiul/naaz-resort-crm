@@ -7,7 +7,8 @@ from app.database import get_db
 from app.config import settings
 from app.models.booking import User, UserRole, UserHistory
 from app.services.auth_service import (
-  authenticate_user, create_user, create_access_token, get_user, get_user_by_email
+  authenticate_user, create_user, create_access_token, get_user, get_user_by_email,
+  get_password_hash, verify_password
 )
 from app.dependencies import get_current_active_user
 
@@ -39,7 +40,47 @@ async def login_for_access_token(
       "username": user.username,
       "email": user.email,
       "full_name": user.full_name,
+      "phone": user.phone,
       "role": user.role,
+      "is_active": user.is_active
+    }
+  }
+
+
+@router.post("/register-customer")
+async def register_customer(
+  username: str,
+  email: str,
+  password: str,
+  full_name: str = "",
+  phone: str = "",
+  db: Session = Depends(get_db)
+):
+  """Public self-service registration. Always creates a CUSTOMER account."""
+  if get_user(db, username):
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already taken")
+  if get_user_by_email(db, email):
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
+
+  user = create_user(db, username, email, password, full_name, UserRole.CUSTOMER.value, phone)
+
+  db.add(UserHistory(
+    user_id=user.id, username=user.username, full_name=user.full_name,
+    email=user.email, role=user.role, action="created",
+    action_by="self-registration", started_at=user.created_at
+  ))
+  db.commit()
+
+  access_token = create_access_token(
+    data={"sub": user.username, "role": user.role},
+    expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+  )
+  return {
+    "access_token": access_token,
+    "token_type": "bearer",
+    "user": {
+      "id": user.id, "username": user.username, "email": user.email,
+      "full_name": user.full_name, "phone": user.phone, "role": user.role,
       "is_active": user.is_active
     }
   }
@@ -213,7 +254,46 @@ async def read_users_me(current_user: User = Depends(get_current_active_user)):
     "username": current_user.username,
     "email": current_user.email,
     "full_name": current_user.full_name,
+    "phone": current_user.phone,
     "role": current_user.role,
     "is_active": current_user.is_active,
     "created_at": current_user.created_at.isoformat() if current_user.created_at else None
+  }
+
+
+@router.patch("/me")
+async def update_profile(
+  full_name: str | None = None,
+  email: str | None = None,
+  phone: str | None = None,
+  current_password: str | None = None,
+  new_password: str | None = None,
+  db: Session = Depends(get_db),
+  current_user: User = Depends(get_current_active_user)
+):
+  if email is not None and email != current_user.email:
+    existing = get_user_by_email(db, email)
+    if existing and existing.id != current_user.id:
+      raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already in use")
+    current_user.email = email
+  if full_name is not None:
+    current_user.full_name = full_name
+  if phone is not None:
+    current_user.phone = phone
+
+  if new_password:
+    if not current_password or not verify_password(current_password, current_user.hashed_password):
+      raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Current password is incorrect")
+    current_user.hashed_password = get_password_hash(new_password)
+
+  db.commit()
+  db.refresh(current_user)
+  return {
+    "id": current_user.id,
+    "username": current_user.username,
+    "email": current_user.email,
+    "full_name": current_user.full_name,
+    "phone": current_user.phone,
+    "role": current_user.role,
+    "is_active": current_user.is_active,
   }

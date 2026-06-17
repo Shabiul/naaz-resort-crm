@@ -2,6 +2,14 @@
 export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
+    screens: {
+      sm: '640px',
+      md: '768px',
+      lg: '1024px',
+      xl: '1280px',
+      '2xl': '1536px',
+      '3xl': '1920px',
+    },
     extend: {
       colors: {
         resort: {
@@ -17,6 +25,10 @@ export default {
           900: '#68391e',
           950: '#3a1c0d',
         },
+      },
+      maxWidth: {
+        'screen-2xl': '1536px',
+        'screen-3xl': '1920px',
       },
     },
   },

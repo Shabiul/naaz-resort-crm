@@ -14,7 +14,7 @@ export default function Loyalty() {
   const [form, setForm] = useState({ guest_name: '', phone: '', email: '', points: 0 })
 
   const load = () => api.getLoyalty().then(setGuests).catch(() => setGuests([]))
-  useEffect(load, [])
+  useEffect(() => { load() }, [])
 
   const handleSubmit = async (e) => {
     e.preventDefault()

@@ -23,7 +23,7 @@ export default function Complaints() {
   const [form, setForm] = useState({ guest_name: '', phone: '', room_number: '', category: 'general', description: '', priority: 'normal', assigned_to: '' })
 
   const load = () => api.getComplaints().then(setComplaints).catch(() => setComplaints([]))
-  useEffect(load, [])
+  useEffect(() => { load() }, [])
 
   const handleSubmit = async (e) => {
     e.preventDefault()

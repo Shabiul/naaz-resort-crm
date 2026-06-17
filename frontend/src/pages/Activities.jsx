@@ -17,7 +17,7 @@ export default function Activities() {
   const [form, setForm] = useState({ guest_name: '', phone: '', email: '', activity: 'Trekking', date: '', time: '09:00', participants: 1, notes: '' })
 
   const load = () => api.getActivities().then(setBookings).catch(() => setBookings([]))
-  useEffect(load, [])
+  useEffect(() => { load() }, [])
 
   const selectedActivity = ACTIVITIES.find(a => a.name === form.activity)
   const total = (selectedActivity?.price || 0) * form.participants

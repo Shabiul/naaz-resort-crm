@@ -2,26 +2,57 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Root scaling ─────────────────────────────────────────────────────────── */
+:root {
+  /* Fluid base font: 14px at 1280px wide → 15px at 1920px → caps at 16px */
+  font-size: clamp(13px, 0.7vw + 5px, 16px);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
 body {
   font-family: 'Inter', sans-serif;
   @apply bg-gray-50 text-gray-900;
+  /* Prevent layout shifts from scrollbar appearing */
+  scrollbar-gutter: stable;
 }
 
 h1, h2, h3, h4 {
   font-family: 'Playfair Display', serif;
 }
 
+/* ── Custom scrollbar (thinner, subtler) ──────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* ── Component library ────────────────────────────────────────────────────── */
 @layer components {
   .card {
-    @apply bg-white rounded-xl shadow-sm border border-gray-100 p-6;
+    @apply bg-white rounded-xl shadow-sm border border-gray-100 p-4 xl:p-5;
   }
 
   .btn-primary {
-    @apply bg-resort-500 hover:bg-resort-600 text-white font-medium py-2 px-4 rounded-lg transition-colors;
+    @apply bg-resort-500 hover:bg-resort-600 text-white font-medium py-2 px-4 rounded-lg transition-colors text-sm;
   }
 
   .btn-secondary {
-    @apply bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg transition-colors;
+    @apply bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg transition-colors text-sm;
   }
 
   .badge {
@@ -40,7 +71,15 @@ h1, h2, h3, h4 {
     @apply badge bg-red-100 text-red-800;
   }
 
+  .badge-checked_in {
+    @apply badge bg-blue-100 text-blue-800;
+  }
+
+  .badge-checked_out {
+    @apply badge bg-gray-100 text-gray-600;
+  }
+
   .input-field {
-    @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-resort-500 focus:border-resort-500 outline-none transition-all;
+    @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-resort-500 focus:border-resort-500 outline-none transition-all text-sm;
   }
 }
